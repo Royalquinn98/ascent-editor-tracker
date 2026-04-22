@@ -61,7 +61,7 @@ function getPrize(type,y,m){const key=y+'-'+m;const cfg=S.rewardCfg||{};if(cfg[k
 function gst(eid,y,m){const ps=S.projects.filter(p=>p.editorId===eid);let tp=0,ex=0,ot=0,ov=0;ps.forEach(p=>{const dl=new Date(p.deadline);if(dl.getFullYear()===y&&dl.getMonth()===m){const t=gTyp(p.type);if(p.exportDate){ex++;tp+=t.pts;if(p.exportDate<=p.deadline){ot++;tp+=t.otBonus}else ov++}else if(isOD(p.deadline)){ov++;tp-=3}}});const pen=S.penalties.filter(p=>p.editorId===eid&&p.year===y&&p.month===m).reduce((s,p)=>s+(p.amount||0),0);const bon=S.bonuses.filter(p=>p.editorId===eid&&p.year===y&&p.month===m).reduce((s,p)=>s+(p.amount||0),0);const ds=S.dailyScores.filter(d=>{if(d.editorId!==eid||!d.date)return false;const dt=new Date(d.date);return dt.getFullYear()===y&&dt.getMonth()===m});const discPts=ds.reduce((s,d)=>s+(d.discipline||0),0);const condPts=ds.reduce((s,d)=>s+(d.conduct||0),0);return{exports:ex,onTime:ot,overdue:ov,penalty:pen,bonus:bon,discPts,condPts,dsDays:ds.length,points:Math.max(0,tp+bon-pen+discPts+condPts)}}
 function rnk(y,m){return S.eds.map(e=>({...e,...gst(e.id,y,m)})).sort((a,b)=>b.points-a.points)}
 function listen(){
-const mk=()=>{S.loaded++;if(S.loaded>=7)document.getElementById('loader').classList.add('hid')};
+const mk=()=>{S.loaded++;if(S.loaded>=8)document.getElementById('loader').classList.add('hid')};
 F.collection('config').doc('settings').onSnapshot(d=>{if(d.exists)S.cfg={...S.cfg,...d.data()};mk();render()},e=>{console.error('config err',e);mk()});
 F.collection('editors').orderBy('name').onSnapshot(s=>{S.eds=s.docs.map(d=>({id:d.id,...d.data()}));mk();if(S.me)S.me=S.eds.find(e=>e.id===S.me.id)||S.me;render()},e=>{console.error('editors err',e);mk()});
 F.collection('projects').orderBy('createdDate','desc').onSnapshot(s=>{S.projects=s.docs.map(d=>({id:d.id,...d.data()}));mk();render()},e=>{console.error('projects err',e);mk()});
@@ -73,7 +73,7 @@ F.collection('bonuses').onSnapshot(s=>{S.bonuses=s.docs.map(d=>({id:d.id,...d.da
 F.collection('leastErr').onSnapshot(s=>{S.leastErr=s.docs.map(d=>({id:d.id,...d.data()}));render()},e=>{console.error('lee err',e)});
 F.collection('rewards').onSnapshot(s=>{S.rewards=s.docs.map(d=>({id:d.id,...d.data()}));render()},e=>{console.error('rew err',e)});
 F.collection('rewardConfig').doc('settings').onSnapshot(d=>{if(d.exists)S.rewardCfg={...S.rewardCfg,...d.data()};render()},e=>{console.error('rwcfg err',e)});
-F.collection('dailyScores').onSnapshot(s=>{S.dailyScores=s.docs.map(d=>({id:d.id,...d.data()}));render()},e=>{console.error('ds err',e)});
+F.collection('dailyScores').onSnapshot(s=>{S.dailyScores=s.docs.map(d=>({id:d.id,...d.data()}));mk();render()},e=>{console.error('ds err',e);mk()});
 setTimeout(()=>{document.getElementById('loader')?.classList.add('hid')},6000);
 }
 async function wAE(n,p,c){sy('ing');await F.collection('editors').add({name:n,pin:p,color:c,joinDate:td()});sy('ok')}
