@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Ascent Editor Tracker v8 - Home Assignment (HA) module: charge settings, record entry, month-wise records, editor self-view -->
+<!-- Ascent Editor Tracker v8.1 - HA records grouped date-wise (newest date first) inside each editor -->
 <html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><meta name="theme-color" content="#0a0a0f"><title>Ascent Editor Tracker</title><link rel="manifest" href="manifest.json"><link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
@@ -237,11 +237,13 @@ function mPBD(eid){const ed=S.eds.find(e=>e.id===eid);if(!ed)return;const y=S.sy
 /* ===== EVENT BINDING (data-attribute based, no inline onclick) ===== */
 /* ===== HOME ASSIGNMENT (HA) ===== */
 function rHADet(recs,isA){
-const byV={};recs.forEach(r=>{const k=(r.videoNum===0||r.videoNum)?String(r.videoNum):'-';(byV[k]=byV[k]||[]).push(r)});
-const keys=Object.keys(byV).sort((a,b)=>(parseFloat(b)||0)-(parseFloat(a)||0));
-return keys.map(k=>{const rs=byV[k];const sub=rs.reduce((s,r)=>s+(r.amount||0),0);
-return '<div class="hagrp"><div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;font-weight:700;color:var(--gold);margin-bottom:4px"><span>\ud83c\udfac Video #'+k+'</span><span>\u20b9'+sub+'</span></div>'+
-rs.map(r=>{const c=haCat(r.catId);return '<div class="harow"><span class="hadot" style="background:'+(c?c.color:'#a78bfa')+'"></span><div style="flex:1;min-width:0"><div style="font-weight:500">'+(r.catName||'?')+(r.qty>1?' \u00d7'+r.qty:'')+'</div><div style="font-size:10px;color:var(--muted)">'+fmd(r.date)+(r.note?' \u00b7 '+r.note:'')+'</div></div><span style="font-family:\'JetBrains Mono\',monospace;color:var(--green);font-weight:600">\u20b9'+(r.amount||0)+'</span>'+(isA?'<button class="tick '+(r.paid?'on':'')+'" data-hapaid="'+r.id+'" style="width:26px;height:26px;font-size:13px;border-width:2px">\u2713</button><button class="cdx" data-delha="'+r.id+'">\u2715</button>':'<span class="pb '+(r.paid?'ex':'pn')+'">'+(r.paid?'PAID':'DUE')+'</span>')+'</div>'}).join('')+'</div>'}).join('')}
+const DW=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+const byD={};recs.forEach(r=>{const k=r.date||'-';(byD[k]=byD[k]||[]).push(r)});
+const keys=Object.keys(byD).sort((a,b)=>b.localeCompare(a));
+return keys.map(k=>{const rs=byD[k].slice().sort((a,b)=>(parseFloat(b.videoNum)||0)-(parseFloat(a.videoNum)||0));const sub=rs.reduce((s,r)=>s+(r.amount||0),0);
+const dd=(k!=='-')?new Date(k+'T00:00:00'):null;const dn=(dd&&!isNaN(dd.getTime()))?' \u00b7 '+DW[dd.getDay()]:'';
+return '<div class="hagrp"><div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;font-weight:700;color:var(--gold);margin-bottom:4px"><span>\ud83d\udcc5 '+(k==='-'?'No date':fmd(k))+dn+'</span><span>\u20b9'+sub+'</span></div>'+
+rs.map(r=>{const c=haCat(r.catId);return '<div class="harow"><span class="hadot" style="background:'+(c?c.color:'#a78bfa')+'"></span><div style="flex:1;min-width:0"><div style="font-weight:500">'+(r.catName||'?')+(r.qty>1?' \u00d7'+r.qty:'')+'</div><div style="font-size:10px;color:var(--muted)">\ud83c\udfac Video #'+((r.videoNum===0||r.videoNum)?r.videoNum:'-')+(r.note?' \u00b7 '+r.note:'')+'</div></div><span style="font-family:\'JetBrains Mono\',monospace;color:var(--green);font-weight:600">\u20b9'+(r.amount||0)+'</span>'+(isA?'<button class="tick '+(r.paid?'on':'')+'" data-hapaid="'+r.id+'" style="width:26px;height:26px;font-size:13px;border-width:2px">\u2713</button><button class="cdx" data-delha="'+r.id+'">\u2715</button>':'<span class="pb '+(r.paid?'ex':'pn')+'">'+(r.paid?'PAID':'DUE')+'</span>')+'</div>'}).join('')+'</div>'}).join('')}
 
 function rHA(isA){const y=S.sy,m=S.sm;
 const all=S.haRecs.filter(r=>r.year===y&&r.month===m);
